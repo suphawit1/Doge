@@ -275,7 +275,7 @@ function onWin() {
 
     // Create the text below the image
     const text = document.createElement('p');
-    text.textContent = 'Happy New Year. Doge กำลังไปเอาของขวัญให้';
+    text.textContent = 'Happy New Year. แต่ Doge ไม่มีของขวัญให้แล้ว T_T';
     text.style.color = 'white';
     text.style.marginTop = '10px';
     text.style.fontSize = '18px';
@@ -287,7 +287,7 @@ function onWin() {
 
     // Wait 5 seconds and redirect
     setTimeout(() => {
-        window.location.href = 'https://gift.truemoney.com/campaign/?v=01941dddf681709d67afe7a5fd5fdef8f3z'; // Redirect URL
+        window.location.href = 'https://www.youtube.com/watch?v=dQ_d_VKrFgM'; // Redirect URL
     }, 5000);
 }
 
