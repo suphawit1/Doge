@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #gameCanvas {
+            border: 2px solid #333;
+            background-color: white;
+        }
+
+        #gameInfo {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #resetButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #resetButton:hover {
+            background-color: #45a049;
+        }
+
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        #controls button {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            font-size: 18px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #controls button:active {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Dogedoru</h1>
+    <div id="gameContainer">
+        <div id="controls">
+            <button id="up" onclick="handleButtonPress(0, -1)">▲</button>
+            <div>
+                <button id="left" onclick="handleButtonPress(-1, 0)">◀</button>
+                <button id="down" onclick="handleButtonPress(0, 1)">▼</button>
+                <button id="right" onclick="handleButtonPress(1, 0)">▶</button>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameInfo">ใช้ปุ่มลูกศรในการนำทาง Doge ไปหาของขวัญ! จำนวนการเคลื่อนไหวที่เหลือ: <span
+                id="movesLeft"></span></div>
+    </div>
+
+    <script>
+        const playerImg = new Image();
+        playerImg.src = '/Doge.png'; // Replace with your player image path
+
+        const finishImg = new Image();
+        finishImg.src = '/present.png'; // Replace with your finish image path
+        let CELL_SIZE;
+        const PLAYER_SIZE = 20;
+        const MAZE_WIDTH = 14;
+        const MAZE_HEIGHT = 14;
+        const INITIAL_MOVES = 46;
+        const MOVE_BONUS = 2;
+
+        let maze = [];
+        let playerPos = { x: 6, y: 0 };
+        let gameWon = false;
+        let trail = [];
+        let remainingMoves = INITIAL_MOVES;
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const movesLeftSpan = document.getElementById('movesLeft');
+
+        function adjustCanvasSize() {
+            const maxWidth = window.innerWidth * 0.8; // 80% of the screen width
+            const maxHeight = window.innerHeight * 0.8; // 80% of the screen height
+
+            // Calculate cell size to fit within the canvas
+            CELL_SIZE = Math.min(maxWidth / MAZE_WIDTH, maxHeight / MAZE_HEIGHT);
+
+            // Set canvas size based on calculated cell size
+            canvas.width = CELL_SIZE * MAZE_WIDTH;
+            canvas.height = CELL_SIZE * MAZE_HEIGHT;
+        }
+
+
+        function generateMaze(width, height) {
+            const maze = [];
+            for (let y = 0; y < height; y++) {
+                maze[y] = [];
+                for (let x = 0; x < width; x++) {
+                    maze[y][x] = { x, y, walls: [true, true, true, true], visited: false };
+                }
+            }
+
+            function carve(x, y) {
+                maze[y][x].visited = true;
+                const directions = shuffle([0, 1, 2, 3]);
+                for (const direction of directions) {
+                    const [nx, ny] = [
+                        x + [0, 1, 0, -1][direction],
+                        y + [-1, 0, 1, 0][direction],
+                    ];
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height && !maze[ny][nx].visited) {
+                        maze[y][x].walls[direction] = false;
+                        maze[ny][nx].walls[(direction + 2) % 4] = false;
+                        carve(nx, ny);
+                    }
+                }
+            }
+
+            carve(0, 0);
+            return maze;
+        }
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function resetGame() {
+            fetch('maze.json')
+                .then(response => response.json())
+                .then(data => {
+                    maze = data; // The maze data will be available here
+                    playerPos = { x: 6, y: 0 };
+                    gameWon = false;
+                    trail.push('6,0');
+                    remainingMoves = INITIAL_MOVES;
+                    updateMovesLeft();
+                    drawMaze(); // Now, draw the maze after the data has been loaded
+                })
+                .catch(error => console.error('Error loading the maze data:', error));
+        }
+
+        function handleButtonPress(dx, dy) {
+            movePlayer(dx, dy); // Call the movePlayer function with the direction
+        }
+
+
+        function movePlayer(dx, dy) {
+            if (gameWon == true) return;
+
+            // When there are no remaining moves, allow only backward movement
+            if (remainingMoves == 0) {
+                console.log("Remaining moves: 0 - Checking if player can move back");
+
+                // Get the last position in the trail (previous position)
+                const lastPos = trail[trail.length - 2]; // Previous position (if any)
+                if (lastPos) {
+                    const [lastX, lastY] = lastPos.split(',').map(Number);
+
+                    // Check if the player is trying to move back to the previous position
+                    console.log([lastX, lastY])
+                    if (playerPos.x + dx === lastX && playerPos.y + dy === lastY) {
+
+                        console.log("Moving back to previous position");
+                        playerPos = { x: lastX, y: lastY };
+                        trail.pop(); // Remove the last position from the trail
+                        remainingMoves++; // Allow the player to move back (gain 1 move)
+                        updateMovesLeft(); // Update the moves left display
+                        drawMaze(); // Redraw the maze after the move
+                        return; // Exit the function after the move back is completed
+                    } else {
+                        console.log("Player can only move back to the last position when no moves are left");
+                        return; // Prevent any movement other than going back
+                    }
+                }
+            }
+
+            const newX = playerPos.x + dx;
+            const newY = playerPos.y + dy;
+
+            // Check boundaries and wall collision
+            if (
+                newX >= 0 &&
+                newX < MAZE_WIDTH &&
+                newY >= 0 &&
+                newY < MAZE_HEIGHT &&
+                !maze[playerPos.y][playerPos.x].walls[
+                [1, 2, 3, 0][
+                ([dx, dy].join(',') === '1,0' ? 0 :
+                    [dx, dy].join(',') === '0,1' ? 1 :
+                        [dx, dy].join(',') === '-1,0' ? 2 : 3)
+                ]
+                ]
+            ) {
+                const newPos = `${newX},${newY}`;
+                playerPos = { x: newX, y: newY };
+
+                if (trail.includes(newPos)) {
+                    // Remove the oldest instance of the position
+                    trail.pop(newPos);
+                    remainingMoves += 1; // Add bonus moves
+                } else {
+                    trail.push(newPos);
+                    remainingMoves--; // Deduct one move
+                }
+
+                // Check win condition
+                if (newX === MAZE_WIDTH - 7 && newY === MAZE_HEIGHT - 1) {
+                    gameWon = true;
+                }
+
+                updateMovesLeft();
+                drawMaze();
+            }
+        }
+
+
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw maze
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            for (const row of maze) {
+                for (const cell of row) {
+                    const x = cell.x * CELL_SIZE;
+                    const y = cell.y * CELL_SIZE;
+
+                    if (cell.walls[0]) drawLine(x, y, x + CELL_SIZE, y);
+                    if (cell.walls[1]) drawLine(x + CELL_SIZE, y, x + CELL_SIZE, y + CELL_SIZE);
+                    if (cell.walls[2]) drawLine(x, y + CELL_SIZE, x + CELL_SIZE, y + CELL_SIZE);
+                    if (cell.walls[3]) drawLine(x, y, x, y + CELL_SIZE);
+                }
+            }
+
+            // Draw trail
+            ctx.fillStyle = 'rgba(255, 165, 0, 0.5)';
+            for (const pos of trail) {
+                const [x, y] = pos.split(',').map(Number);
+                ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+
+            // Draw player
+            ctx.drawImage(playerImg, playerPos.x * CELL_SIZE, playerPos.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+            // Draw finish point
+            ctx.drawImage(finishImg, (MAZE_WIDTH - 7) * CELL_SIZE, (MAZE_HEIGHT - 1) * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+            // Update game info
+            if (gameWon) {
+                document.getElementById('gameInfo').textContent = 'ยินดัด้วย Doge เจอของขวัญแล้ว';
+            } else if (remainingMoves === 0) {
+                document.getElementById('gameInfo').textContent = 'Doge เดินต่อไม่ไหวแล้ว กลับทางเดิมและหาทางใหม่ให้ Doge';
+            } else {
+                document.getElementById('gameInfo').innerHTML = 'ใช้ปุ่มลูกศรในการนำทาง Doge ไปหาของขวัญ! จำนวนการเคลื่อนไหวที่เหลือ: <span id="movesLeft">' + remainingMoves + '</span>';
+            }
+        }
+
+        function drawLine(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        function updateMovesLeft() {
+            movesLeftSpan.textContent = remainingMoves;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const [dx, dy] = {
+                'ArrowUp': [0, -1],
+                'ArrowRight': [1, 0],
+                'ArrowDown': [0, 1],
+                'ArrowLeft': [-1, 0],
+            }[e.key] || [0, 0];
+
+            movePlayer(dx, dy);
+        });
+
+        window.addEventListener('resize', () => {
+            adjustCanvasSize();
+            drawMaze();
+        });
+        // Initialize the game
+        adjustCanvasSize();
+        resetGame();
+    </script>
+</body>
+
+</html>
