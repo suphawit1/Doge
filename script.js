@@ -295,16 +295,18 @@ function onWin() {
 
 
 document.addEventListener('keydown', (e) => {
-    const [dx, dy] = {
+    const directions = {
         'ArrowUp': [0, -1],
         'ArrowRight': [1, 0],
         'ArrowDown': [0, 1],
         'ArrowLeft': [-1, 0],
-    }[e.key];
+    };
 
-    movePlayer(dx, dy);
+    if (e.key in directions) {
+        const [dx, dy] = directions[e.key];
+        movePlayer(dx, dy);
+    }
 });
-
 window.onload = function() {
     // Check the window width
     const isMobile = window.innerWidth > 768;
