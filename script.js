@@ -1,8 +1,8 @@
 const playerImg = new Image();
-playerImg.src = './img/Doge.png'; // Replace with your player image path
 
+playerImg.src = '/Doge/img/Doge.png';
 const finishImg = new Image();
-finishImg.src = './img/present.png'; // Replace with your finish image path
+finishImg.src = '/Doge/img/present.png';
 let CELL_SIZE;
 const PLAYER_SIZE = 20;
 const MAZE_WIDTH = 14;
@@ -20,29 +20,29 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const movesLeftSpan = document.getElementById('movesLeft');
 
-const p1 = new Audio('music/padoru1.mp3');
-const p2 = new Audio('music/padoru2.mp3');
-const p3 = new Audio('music/padoru3.mp3');
-const p4 = new Audio('music/padoru4.mp3');
-const p5 = new Audio('music/padoru5.mp3');
-const p6 = new Audio('music/padoru6.mp3');
-const p7 = new Audio('music/padoru7.mp3');
-const p8 = new Audio('music/padoru8.mp3');
-const p9 = new Audio('music/padoru9.mp3');
-const p10 = new Audio('music/padoru10.mp3');
-const p11 = new Audio('music/padoru11.mp3');
-const p12 = new Audio('music/padoru12.mp3');
-const p13 = new Audio('music/padoru13.mp3');
-const p14 = new Audio('music/padoru14.mp3');
-const p15 = new Audio('music/padoru15.mp3');
-const p16 = new Audio('music/padoru16.mp3');
-const p17 = new Audio('music/padoru17.mp3');
-const p18 = new Audio('music/padoru18.mp3');
-const p19 = new Audio('music/padoru19.mp3');
-const p20 = new Audio('music/padoru20.mp3');
-const p21 = new Audio('music/padoru21.mp3');
-const p22 = new Audio('music/padoru22.mp3');
-const p23 = new Audio('music/padoru23.mp3');
+const p1 = new Audio('/Doge/music/padoru1.mp3');
+const p2 = new Audio('/Doge/music/padoru2.mp3');
+const p3 = new Audio('/Doge/music/padoru3.mp3');
+const p4 = new Audio('/Doge/music/padoru4.mp3');
+const p5 = new Audio('/Doge/music/padoru5.mp3');
+const p6 = new Audio('/Doge/music/padoru6.mp3');
+const p7 = new Audio('/Doge/music/padoru7.mp3');
+const p8 = new Audio('/Doge/music/padoru8.mp3');
+const p9 = new Audio('/Doge/music/padoru9.mp3');
+const p10 = new Audio('/Doge/music/padoru10.mp3');
+const p11 = new Audio('/Doge/music/padoru11.mp3');
+const p12 = new Audio('/Doge/music/padoru12.mp3');
+const p13 = new Audio('/Doge/music/padoru13.mp3');
+const p14 = new Audio('/Doge/music/padoru14.mp3');
+const p15 = new Audio('/Doge/music/padoru15.mp3');
+const p16 = new Audio('/Doge/music/padoru16.mp3');
+const p17 = new Audio('/Doge/music/padoru17.mp3');
+const p18 = new Audio('/Doge/music/padoru18.mp3');
+const p19 = new Audio('/Doge/music/padoru19.mp3');
+const p20 = new Audio('/Doge/music/padoru20.mp3');
+const p21 = new Audio('/Doge/music/padoru21.mp3');
+const p22 = new Audio('/Doge/music/padoru22.mp3');
+const p23 = new Audio('/Doge/music/padoru23.mp3');
 
 
 
@@ -267,7 +267,8 @@ function onWin() {
 
     // Create the image
     const img = document.createElement('img');
-    img.src = './img/Doge.png'; // Path to your winning image
+    
+    img.src = '/Doge/img/Doge.png'; // Path to your winning image
     img.alt = 'Happy New Year. Doge กำลังไปเอาของขวัญให้';
     img.style.maxWidth = '80%';
     img.style.maxHeight = '80%';
