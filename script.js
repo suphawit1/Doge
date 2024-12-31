@@ -300,7 +300,7 @@ document.addEventListener('keydown', (e) => {
         'ArrowRight': [1, 0],
         'ArrowDown': [0, 1],
         'ArrowLeft': [-1, 0],
-    }
+    }[e.key];
 
     movePlayer(dx, dy);
 });
